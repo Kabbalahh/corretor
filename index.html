@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corretor de Imóveis | Mestre Alisson</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, onSnapshot, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvOkBwRqwQiradKmfvBjVWBcqtlMuGfGM",
+            authDomain: "alisson-x-corretor-de-imoveis.firebaseapp.com",
+            projectId: "alisson-x-corretor-de-imoveis",
+            storageBucket: "alisson-x-corretor-de-imoveis.appspot.com",
+            messagingSenderId: "118409609679842495601",
+            appId: "1:118409609679842495601:web:abc123def456"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Tornar disponível globalmente
+        window.db = db;
+        window.firebaseModules = {
+            collection,
+            onSnapshot,
+            query,
+            where,
+            orderBy
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* Light Gray Background */
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0d9488;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Cabeçalho (Header) -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-teal-600">
+                <span class="text-gray-800">Mestre</span> Alisson
+            </a>
+            <nav class="mt-4 sm:mt-0">
+                <ul class="flex space-x-6 text-sm sm:text-base font-medium">
+                    <li><a href="#destaques" class="text-gray-600 hover:text-teal-600 transition-colors duration-300">Destaques</a></li>
+                    <li><a href="#sobre" class="text-gray-600 hover:text-teal-600 transition-colors duration-300">Sobre Mim</a></li>
+                    <li><a href="#blog" class="text-gray-600 hover:text-teal-600 transition-colors duration-300">Blog</a></li>
+                    <li><a href="#contato" class="text-gray-600 hover:text-teal-600 transition-colors duration-300">Contato</a></li>
+                    <li><a href="admin.html" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors duration-300">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Seção Principal (Hero) -->
+    <main class="py-12 md:py-24">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                Encontre o imóvel dos seus sonhos em <span class="text-teal-600">Porto Alegre</span>.
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                Consultoria personalizada para compra, venda e aluguel de imóveis na sua cidade.
+            </p>
+            <!-- Barra de Busca SEO-friendly -->
+            <div class="mt-8 flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
+                <input type="text" id="search-input" placeholder="Apartamento, casa, bairro..." class="w-full md:w-96 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300">
+                <button id="search-btn" class="w-full md:w-auto bg-teal-600 text-white font-medium py-3 px-8 rounded-xl shadow-lg hover:bg-teal-700 transition-all duration-300">Buscar Imóveis</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Imóveis em Destaque (Featured Properties) -->
+    <section id="destaques" class="py-12 md:py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">Imóveis em Destaque</h2>
+            <div id="property-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="flex justify-center items-center col-span-full">
+                    <div class="loading"></div>
+                    <span class="ml-2 text-gray-600">Carregando imóveis...</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Sobre Mim (About Me) -->
+    <section id="sobre" class="py-12 md:py-20 bg-gray-50">
+        <div class="container mx-auto px-4 flex flex-col lg:flex-row items-center justify-center space-y-8 lg:space-y-0 lg:space-x-12">
+            <div class="w-full lg:w-1/2">
+                <img src="https://placehold.co/600x400/2dd4bf/ffffff?text=Sua+Foto+Profissional" alt="Foto profissional do corretor Mestre Alisson" class="w-full rounded-3xl shadow-2xl">
+            </div>
+            <div class="w-full lg:w-1/2 text-center lg:text-left">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Mestre Alisson</h2>
+                <h3 class="text-xl text-teal-600 mb-4">Seu Corretor de Imóveis em Porto Alegre</h3>
+                <p class="text-gray-700 leading-relaxed">
+                    Com mais de 10 anos de experiência no mercado imobiliário, meu objetivo é transformar a busca pelo seu lar em uma jornada tranquila e segura. Minha paixão é conectar pessoas a seus novos lares, oferecendo um serviço ético, transparente e focado em suas necessidades. Credenciado pelo CRECI, garanto um processo de compra ou venda com total profissionalismo.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog (Conteúdo SEO) -->
+    <section id="blog" class="py-12 md:py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">Blog: Dicas e Guias</h2>
+            <div id="blog-list" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="flex justify-center items-center col-span-full">
+                    <div class="loading"></div>
+                    <span class="ml-2 text-gray-600">Carregando artigos...</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formulário de Contato -->
+    <section id="contato" class="py-12 md:py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-xl mx-auto text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Entre em Contato</h2>
+                <p class="text-gray-600 mb-8">
+                    Pronto para encontrar o seu próximo imóvel ou deseja anunciar o seu? Envie uma mensagem e vamos conversar.
+                </p>
+                <form id="contact-form" class="space-y-4">
+                    <input type="text" id="contact-name" placeholder="Seu Nome" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <input type="email" id="contact-email" placeholder="Seu E-mail" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <textarea id="contact-message" placeholder="Sua Mensagem" rows="4" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+                    <button type="submit" class="w-full bg-teal-600 text-white font-medium py-3 rounded-xl shadow-lg hover:bg-teal-700 transition-colors duration-300">Enviar Mensagem</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé (Footer) -->
+    <footer class="bg-gray-800 text-white py-10">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Mestre Alisson. Todos os direitos reservados.</p>
+            <div class="mt-4 flex justify-center space-x-4">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M19.636 4.364A12 12 0 1 0 12 24a12 12 0 0 0 7.636-19.636ZM12 22A10 10 0 1 1 12 2a10 10 0 0 1 0 20Z"></path>
+                        <path d="M15.42 8.794a.978.978 0 0 0-.96-.96c-.463 0-2.484-.046-3.837-.046h-.25c-1.353 0-3.374.046-3.837.046a.978.978 0 0 0-.96.96c0 .463.046 2.484.046 3.837v.25c0 1.353-.046 3.374-.046 3.837a.978.978 0 0 0 .96.96c.463 0 2.484.046 3.837.046h.25c1.353 0 3.374-.046 3.837-.046a.978.978 0 0 0 .96-.96c0-.463-.046-2.484-.046-3.837v-.25c0-1.353.046-3.374.046-3.837Z"></path>
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2.163c3.204 0 3.584.013 4.85.07c.834.038 1.488.196 2.044.425.56.23.956.554 1.393.992.438.438.762.833.992 1.393.229.556.387 1.21.425 2.044.057 1.266.07 1.646.07 4.85s-.013 3.584-.07 4.85c-.038.834-.196 1.488-.425 2.044-.23.56-.554.956-.992 1.393-.438.438-.833.762-1.393.992-.556.229-1.21.387-2.044.425-1.266.057-1.646.07-4.85.07s-3.584-.013-4.85-.07c-.834-.038-1.488-.196-2.044-.425-.56-.23-.956-.554-1.393-.992-.438-.438-.762-.833-.992-1.393-.229-.556-.387-1.21-.425-2.044-.057-1.266-.07-1.646-.07-4.85s.013-3.584.07-4.85c.038-.834.196-1.488.425-2.044.23-.56.554-.956.992-1.393.438-.438.833-.762 1.393-.992.556-.229 1.21-.387 2.044-.425C8.416 2.176 8.796 2.163 12 2.163zm0-1.464c-3.267 0-3.692.014-4.96.072-1.12.05-1.928.272-2.613.564-.707.305-1.26.79-1.81.996-.549.206-.996.386-1.393.593-.4.207-.76.47-.992.992-.232.522-.497 1.054-.64 1.704-.142.65-.246 1.48-.302 2.612-.058 1.268-.072 1.693-.072 4.96s.014 3.692.072 4.96c.056 1.132.16 1.962.302 2.612.143.65.41 1.182.64 1.704.232.522.592.79.992.992.397.207.844.387 1.393.593.65.206 1.203.414 1.81.996.685.292 1.493.514 2.613.564 1.268.058 1.693.072 4.96.072s3.692-.014 4.96-.072c1.12-.05 1.928-.272 2.613-.564.707-.305 1.26-.79 1.81-.996.549-.206.996-.386 1.393-.593.4-.207.76-.47.992-.992.232-.522.497-1.054.64-1.704.142-.65.246-1.48.302-2.612.058-1.268.072-1.693.072-4.96s-.014-3.692-.072-4.96c-.056-1.132-.16-1.962-.302-2.612-.143-.65-.41-1.182-.64-1.704-.232-.522-.592-.79-.992-.992-.397-.207-.844-.387-1.393-.593-.65-.206-1.203-.414-1.81-.996-.685-.292-1.493-.514-2.613-.564-1.268-.058-1.693-.072-4.96-.072z"></path>
+                        <path d="M12 9.288c-1.495 0-2.712 1.217-2.712 2.712s1.217 2.712 2.712 2.712 2.712-1.217 2.712-2.712-1.217-2.712-2.712-2.712z"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Aguardar o Firebase estar disponível
+            while (!window.db || !window.firebaseModules) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            const { collection, onSnapshot, query, where, orderBy } = window.firebaseModules;
+
+            // Função para gerar o HTML para cada imóvel
+            const generatePropertyCard = (property) => {
+                const imageUrls = property.imageURLs || [];
+                const mainImage = imageUrls.length > 0 ? imageUrls[0] : 'https://placehold.co/400x300/2dd4bf/ffffff?text=Sem+Imagem';
+                
+                return `
+                    <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                        <img src="${mainImage}" alt="Imagem do Imóvel: ${property.titulo}" class="w-full h-48 object-cover rounded-xl mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">${property.titulo}</h3>
+                        <p class="text-sm text-gray-600 mt-1">${property.localizacao}</p>
+                        <p class="text-2xl font-semibold text-teal-600 mt-2">${property.preco}</p>
+                        <p class="text-gray-700 mt-4 text-sm">${property.descricao}</p>
+                        <div class="mt-4 flex items-center space-x-4 text-gray-500">
+                            ${property.quartos ? `
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    </svg>
+                                    <span>${property.quartos} quartos</span>
+                                </div>
+                            ` : ''}
+                            ${property.banheiros ? `
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
+                                    </svg>
+                                    <span>${property.banheiros} banheiros</span>
+                                </div>
+                            ` : ''}
+                            ${property.area ? `
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                    </svg>
+                                    <span>${property.area}m²</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <button class="mt-4 w-full bg-teal-600 text-white font-medium py-2 px-4 rounded-xl hover:bg-teal-700 transition-colors duration-300">
+                            Ver Detalhes
+                        </button>
+                    </div>
+                `;
+            };
+
+            // Função para gerar o HTML para cada artigo do blog
+            const generateBlogCard = (post) => {
+                const date = post.data ? new Date(post.data.seconds * 1000).toLocaleDateString('pt-BR') : '';
+                return `
+                    <article class="bg-gray-50 p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">${post.titulo}</h3>
+                        ${date ? `<p class="text-sm text-gray-500 mb-2">Por ${post.autor || 'Mestre Alisson'} - ${date}</p>` : ''}
+                        <p class="text-gray-700 text-sm">${post.conteudo.substring(0, 150)}...</p>
+                        <button class="mt-4 text-teal-600 font-medium hover:text-teal-700 transition-colors duration-300">
+                            Ler mais →
+                        </button>
+                    </article>
+                `;
+            };
+
+            // Carregar imóveis em destaque
+            const loadProperties = () => {
+                const propertyList = document.getElementById('property-list');
+                
+                try {
+                    const q = query(collection(window.db, 'imoveis'), where('destaque', '==', true));
+                    onSnapshot(q, (querySnapshot) => {
+                        if (querySnapshot.empty) {
+                            propertyList.innerHTML = `
+                                <div class="col-span-full text-center py-8">
+                                    <p class="text-gray-600">Nenhum imóvel em destaque encontrado.</p>
+                                    <p class="text-sm text-gray-500 mt-2">Use o painel administrativo para adicionar imóveis.</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        const propertiesHTML = querySnapshot.docs.map(doc => {
+                            const property = doc.data();
+                            return generatePropertyCard(property);
+                        }).join('');
+
+                        propertyList.innerHTML = propertiesHTML;
+                    });
+                } catch (error) {
+                    console.error('Erro ao carregar imóveis:', error);
+                    propertyList.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <p class="text-red-600">Erro ao carregar imóveis.</p>
+                            <p class="text-sm text-gray-500 mt-2">Verifique a configuração do Firebase.</p>
+                        </div>
+                    `;
+                }
+            };
+
+            // Carregar artigos do blog
+            const loadBlogPosts = () => {
+                const blogList = document.getElementById('blog-list');
+                
+                try {
+                    const q = query(collection(window.db, 'blogPosts'), orderBy('data', 'desc'));
+                    onSnapshot(q, (querySnapshot) => {
+                        if (querySnapshot.empty) {
+                            blogList.innerHTML = `
+                                <div class="col-span-full text-center py-8">
+                                    <p class="text-gray-600">Nenhum artigo encontrado.</p>
+                                    <p class="text-sm text-gray-500 mt-2">Use o painel administrativo para adicionar artigos.</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        const postsHTML = querySnapshot.docs.slice(0, 3).map(doc => {
+                            const post = doc.data();
+                            return generateBlogCard(post);
+                        }).join('');
+
+                        blogList.innerHTML = postsHTML;
+                    });
+                } catch (error) {
+                    console.error('Erro ao carregar blog posts:', error);
+                    blogList.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <p class="text-red-600">Erro ao carregar artigos.</p>
+                            <p class="text-sm text-gray-500 mt-2">Verifique a configuração do Firebase.</p>
+                        </div>
+                    `;
+                }
+            };
+
+            // Inicializar carregamento de dados
+            loadProperties();
+            loadBlogPosts();
+
+            // Funcionalidade de busca (placeholder)
+            const searchBtn = document.getElementById('search-btn');
+            const searchInput = document.getElementById('search-input');
+            
+            searchBtn.addEventListener('click', () => {
+                const searchTerm = searchInput.value.trim();
+                if (searchTerm) {
+                    alert(`Busca por: "${searchTerm}"\nFuncionalidade será implementada em breve!`);
+                }
+            });
+
+            // Formulário de contato (placeholder)
+            const contactForm = document.getElementById('contact-form');
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('contact-name').value;
+                const email = document.getElementById('contact-email').value;
+                const message = document.getElementById('contact-message').value;
+                
+                alert(`Mensagem enviada!\nNome: ${name}\nE-mail: ${email}\nMensagem: ${message}\n\nFuncionalidade será implementada em breve!`);
+                contactForm.reset();
+            });
+        });
+    </script>
+</body>
+</html>
+

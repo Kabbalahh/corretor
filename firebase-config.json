@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "alisson-x-corretor-de-imoveis",
+  "private_key_id": "8eacb39d196a5ac1c1fb76087a54de114d037006",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCeAgqO/D1CLTbf\nq3RKQB1rQ9Ld8WPkFo5g6QE7fALDGM2Q/F7V9AEAVrDQQVkbYPb21vm5R10Wuovu\nEx4kVcdKmal1Fglc1okCDCnI3qxHPSHKFCUG282Tfi0wC9LH4UkpcFKyqCx1sLLo\n9GOoiGQ/ASCDgxAdl8b60ZSdmjRop+H//wCi4Ob5wux3PxJxK0NOjGyeBYIFv9g+\nJzp22DlpuEvdBqgfIEtcK6lTPrLzECfvqvAM4WedKUfLormTtTZPw+fFfRhp/3a2\nF283+7x4Fl5G9NHpj6IXjL9dmZl7TuSaYmeX9szYGq+GKrNbk/oYkrwDA7kOHzs8\nDfr2capJAgMBAAECggEABaIb/0IF6xSSlsHVmQoVImxeGbSP86NMOy9DcHv42zzI\no2kj9mvHF1x/3ETgKOY5l85NQ+pD6toGwBulYPU/8CxvSrHY7prlcpG9caBisv1+\ndWZndYmjmCUQ9lwNjTu+cIBFKoJtZ1q/3idMYEdQj6B6KMYk7nEpUmrjagUD5lE7\nlWE2E/0MCIxQ7/9PsdVNdrnsreuR/n7D7zJ9GrQBishl2rRSpddFEH6wpsjss/Gu\nBoRvHGEiF6xBnq4TVI0sw/mt4pvnp+abCAQaJgbmCUuHBhZLKUnjlDVjLjO3KcnJ\ncFxRB2j5n60ySl/+umJM5clICXmfji5GRG6miJTdQwKBgQDTHYRf9OsJAW1p8qJg\nrNuQ8YkBmFA2nLl2vYjMXLx5N9Xy7Xa/s+XRqzYBct7nvKRImIRyQU/7oFVcq9an\nXuJxyO/fW/WlhvPUr32soJdLjZt0Qe//GAvjZ/Jgn153FWK9v3mH9n9cDFxAho5W\nYwYhgSBj0742XXdpl3UAijp/QwKBgQC/mgYb+UXm/7D/qZAu0fPZJXnQYzHvUC4N\nJBliaYgHi5H3TTins9McT/dWhtnL4mW9doubO+actfSXelTq27701CIBCizdIcxB\ntE1f99wUa96/jOZyVj9x+rbCfiWCiqHlbaUQhuV+28KZxqkBt03+Rcz5fewL/0mZ\nI6XbHccZgwKBgCZ4DHUHxgRAFFXn9pqzJNdGi/aUcJli+ZCffNvwUg+skvnPN4I7\nH7eTASZGbkO/5hesYwYGzLJHRwa58UVSTuT4/myu7xYYfznUOIxKPwdvaFJI6ZiM\nIy5u9IWSxL3iUbnNuDGEQzTcs7q2Sh2HschNJT/Lh6+UXHwLMzDD/2DNAoGAQ0Pv\noSKCR/a8TQVaeRV8Zl+hxGcOwNWFVVe3EbW66+sz835IxZd8JhRs4RO2or14umtD\n19vPunSmygdIiKtc/tb6mSLZXUjgTLDf+TErMoAsU1NEFB/zZjB+uQlQYeQJsmIr\n8QFq0H6WcyYrb07LMtmOfIiYth2J2RmKwMJTg8ECgYEAuSxGtd/g2R5fWiHNo7JU\noJ245OENbDh4T+C26XQ4rfC9MHZWCM4xXBWiJ/d1HuIIuutitcLFpcqsi2rUrZSZ\nBBtj0zPyxnW6fFIvtQeDt/TsjopjlRalegraEA8QBNhE/DHZtAXdCtT9tys7alRX\nx4w4DYmAmAwmT1scLAErv+w=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@alisson-x-corretor-de-imoveis.iam.gserviceaccount.com",
+  "client_id": "118409609679842495601",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40alisson-x-corretor-de-imoveis.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

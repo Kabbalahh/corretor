@@ -1,0 +1,34 @@
+{
+  "name": "site-corretor-imoveis",
+  "version": "1.0.0",
+  "description": "Site dinâmico para corretor de imóveis com painel administrativo integrado ao Firebase",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "build": "echo 'Site estático - não requer build'",
+    "deploy": "echo 'Siga as instruções em DEPLOY.md'"
+  },
+  "keywords": [
+    "corretor",
+    "imoveis",
+    "firebase",
+    "html",
+    "css",
+    "javascript",
+    "tailwind"
+  ],
+  "author": "Mestre Alisson",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SEU_USUARIO/site-corretor-imoveis.git"
+  },
+  "homepage": "https://SEU_USUARIO.github.io/site-corretor-imoveis",
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+
