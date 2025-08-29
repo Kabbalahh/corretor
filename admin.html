@@ -9,17 +9,17 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
         // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyBEbD0FkjQGRGWdtMQEzorRXMxNTlVQs5E",
+            apiKey: "AIzaSyEbBD0FkjGqDGDWdTMQeZorRXMxNTIVQs5E",
             authDomain: "alisson-x-corretor-de-imoveis.firebaseapp.com",
             projectId: "alisson-x-corretor-de-imoveis",
             storageBucket: "alisson-x-corretor-de-imoveis.appspot.com",
             messagingSenderId: "118409609679842495601",
-            appId: "alisson-x-corretor-de-imoveis"
+            appId: "1:118409609679842495601:web:abc123def456"
         };
 
         // Inicializar Firebase
@@ -40,7 +40,9 @@
             serverTimestamp,
             signInWithEmailAndPassword,
             signOut,
-            onAuthStateChanged
+            onAuthStateChanged,
+            query,
+            orderBy
         };
     </script>
     <style>
@@ -253,7 +255,7 @@
 
             const { 
                 collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp,
-                signInWithEmailAndPassword, signOut, onAuthStateChanged 
+                signInWithEmailAndPassword, signOut, onAuthStateChanged, query, orderBy
             } = window.firebaseModules;
 
             let currentEditingId = null;
@@ -309,249 +311,261 @@
                 tabImoveis.addEventListener('click', () => {
                     tabImoveis.classList.add('border-teal-600', 'text-teal-600');
                     tabImoveis.classList.remove('border-transparent', 'text-gray-600');
-                    tabBlog.classList.add('border-transparent', 'text-gray-600');
                     tabBlog.classList.remove('border-teal-600', 'text-teal-600');
+                    tabBlog.classList.add('border-transparent', 'text-gray-600');
                     sectionImoveis.classList.remove('hidden');
                     sectionBlog.classList.add('hidden');
+                    loadProperties(); // Recarrega imóveis ao mudar de aba
                 });
 
                 tabBlog.addEventListener('click', () => {
                     tabBlog.classList.add('border-teal-600', 'text-teal-600');
                     tabBlog.classList.remove('border-transparent', 'text-gray-600');
-                    tabImoveis.classList.add('border-transparent', 'text-gray-600');
                     tabImoveis.classList.remove('border-teal-600', 'text-teal-600');
+                    tabImoveis.classList.add('border-transparent', 'text-gray-600');
                     sectionBlog.classList.remove('hidden');
                     sectionImoveis.classList.add('hidden');
+                    loadBlogPostsAdmin(); // Recarrega blog posts ao mudar de aba
                 });
 
-                // Carregar dados
-                loadImoveis();
-                loadBlogPosts();
-                setupModals();
-            }
-
-            // Carregar imóveis
-            function loadImoveis() {
-                const imoveisList = document.getElementById('imoveis-list');
-                
-                onSnapshot(collection(window.db, 'imoveis'), (querySnapshot) => {
-                    if (querySnapshot.empty) {
-                        imoveisList.innerHTML = '<p class="text-gray-600 text-center py-8">Nenhum imóvel cadastrado.</p>';
-                        return;
-                    }
-
-                    const imoveisHTML = querySnapshot.docs.map(doc => {
-                        const imovel = doc.data();
-                        return `
-                            <div class="bg-white p-6 rounded-xl shadow-md">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                        <h3 class="text-lg font-bold text-gray-900">${imovel.titulo}</h3>
-                                        <p class="text-gray-600">${imovel.localizacao}</p>
-                                        <p class="text-teal-600 font-semibold">${imovel.preco}</p>
-                                        <p class="text-sm text-gray-500 mt-2">${imovel.descricao.substring(0, 100)}...</p>
-                                        ${imovel.destaque ? '<span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full mt-2">Destaque</span>' : ''}
-                                    </div>
-                                    <div class="flex space-x-2 ml-4">
-                                        <button onclick="editImovel('${doc.id}', ${JSON.stringify(imovel).replace(/"/g, '&quot;')})" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors duration-300">
-                                            Editar
-                                        </button>
-                                        <button onclick="deleteImovel('${doc.id}')" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors duration-300">
-                                            Excluir
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    imoveisList.innerHTML = imoveisHTML;
-                });
-            }
-
-            // Carregar blog posts
-            function loadBlogPosts() {
-                const blogList = document.getElementById('blog-list');
-                
-                onSnapshot(collection(window.db, 'blogPosts'), (querySnapshot) => {
-                    if (querySnapshot.empty) {
-                        blogList.innerHTML = '<p class="text-gray-600 text-center py-8">Nenhum artigo cadastrado.</p>';
-                        return;
-                    }
-
-                    const postsHTML = querySnapshot.docs.map(doc => {
-                        const post = doc.data();
-                        const date = post.data ? new Date(post.data.seconds * 1000).toLocaleDateString('pt-BR') : '';
-                        return `
-                            <div class="bg-white p-6 rounded-xl shadow-md">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                        <h3 class="text-lg font-bold text-gray-900">${post.titulo}</h3>
-                                        <p class="text-gray-600">Por ${post.autor || 'Mestre Alisson'} ${date ? '- ' + date : ''}</p>
-                                        <p class="text-sm text-gray-500 mt-2">${post.conteudo.substring(0, 150)}...</p>
-                                    </div>
-                                    <div class="flex space-x-2 ml-4">
-                                        <button onclick="editBlogPost('${doc.id}', ${JSON.stringify(post).replace(/"/g, '&quot;')})" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors duration-300">
-                                            Editar
-                                        </button>
-                                        <button onclick="deleteBlogPost('${doc.id}')" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors duration-300">
-                                            Excluir
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    blogList.innerHTML = postsHTML;
-                });
-            }
-
-            // Configurar modais
-            function setupModals() {
-                const addImovelBtn = document.getElementById('add-imovel-btn');
-                const addBlogBtn = document.getElementById('add-blog-btn');
+                // Funções para Imóveis (CRUD)
                 const imovelModal = document.getElementById('imovel-modal');
-                const blogModal = document.getElementById('blog-modal');
+                const addImovelBtn = document.getElementById('add-imovel-btn');
                 const cancelImovelBtn = document.getElementById('cancel-imovel-btn');
-                const cancelBlogBtn = document.getElementById('cancel-blog-btn');
                 const imovelForm = document.getElementById('imovel-form');
-                const blogForm = document.getElementById('blog-form');
+                const imovelModalTitle = document.getElementById('imovel-modal-title');
 
-                // Abrir modais
                 addImovelBtn.addEventListener('click', () => {
+                    imovelModalTitle.textContent = 'Adicionar Imóvel';
+                    imovelForm.reset();
                     currentEditingId = null;
                     currentEditingType = 'imovel';
-                    document.getElementById('imovel-modal-title').textContent = 'Adicionar Imóvel';
-                    imovelForm.reset();
                     imovelModal.classList.remove('hidden');
                 });
 
-                addBlogBtn.addEventListener('click', () => {
-                    currentEditingId = null;
-                    currentEditingType = 'blog';
-                    document.getElementById('blog-modal-title').textContent = 'Adicionar Artigo';
-                    blogForm.reset();
-                    document.getElementById('blog-autor').value = 'Mestre Alisson';
-                    blogModal.classList.remove('hidden');
-                });
-
-                // Fechar modais
                 cancelImovelBtn.addEventListener('click', () => {
                     imovelModal.classList.add('hidden');
+                });
+
+                imovelForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const imovelData = {
+                        titulo: document.getElementById('imovel-titulo').value,
+                        descricao: document.getElementById('imovel-descricao').value,
+                        preco: document.getElementById('imovel-preco').value,
+                        localizacao: document.getElementById('imovel-localizacao').value,
+                        quartos: parseInt(document.getElementById('imovel-quartos').value) || 0,
+                        banheiros: parseInt(document.getElementById('imovel-banheiros').value) || 0,
+                        area: parseInt(document.getElementById('imovel-area').value) || 0,
+                        destaque: document.getElementById('imovel-destaque').value === 'true',
+                        imageURLs: document.getElementById('imovel-images').value.split('\n').filter(url => url.trim() !== ''),
+                        data: serverTimestamp()
+                    };
+
+                    try {
+                        if (currentEditingId) {
+                            await updateDoc(doc(window.db, 'imoveis', currentEditingId), imovelData);
+                        } else {
+                            await addDoc(collection(window.db, 'imoveis'), imovelData);
+                        }
+                        imovelModal.classList.add('hidden');
+                        alert('Imóvel salvo com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao salvar imóvel:', error);
+                        alert('Erro ao salvar imóvel. Verifique o console para mais detalhes.');
+                    }
+                });
+
+                // Função para gerar o HTML para cada imóvel no admin
+                const generateAdminPropertyCard = (property, id) => {
+                    const mainImage = property.imageURLs && property.imageURLs.length > 0 ? property.imageURLs[0] : 'https://placehold.co/150x100/2dd4bf/ffffff?text=Sem+Imagem';
+                    return `
+                        <div class="bg-white p-4 rounded-lg shadow flex items-center space-x-4">
+                            <img src="${mainImage}" alt="${property.titulo}" class="w-24 h-16 object-cover rounded">
+                            <div class="flex-grow">
+                                <h4 class="font-bold text-gray-900">${property.titulo}</h4>
+                                <p class="text-sm text-gray-600">${property.localizacao} - ${property.preco}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-id="${id}" data-type="imovel" class="edit-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Editar</button>
+                                <button data-id="${id}" data-type="imovel" class="delete-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Excluir</button>
+                            </div>
+                        </div>
+                    `;
+                };
+
+                // Carregar imóveis no painel admin
+                const loadProperties = () => {
+                    const imoveisList = document.getElementById('imoveis-list');
+                    imoveisList.innerHTML = `
+                        <div class="flex justify-center items-center py-8">
+                            <div class="loading"></div>
+                            <span class="ml-2 text-gray-600">Carregando imóveis...</span>
+                        </div>
+                    `;
+
+                    onSnapshot(collection(window.db, "imoveis"), (snapshot) => {
+                        imoveisList.innerHTML = '';
+                        if (snapshot.empty) {
+                            imoveisList.innerHTML = '<p class="col-span-full text-center text-gray-600">Nenhum imóvel cadastrado.</p>';
+                            return;
+                        }
+                        snapshot.forEach((doc) => {
+                            imoveisList.innerHTML += generateAdminPropertyCard(doc.data(), doc.id);
+                        });
+                        addEventListenersToCrudButtons();
+                    }, (error) => {
+                        console.error("Erro ao carregar imóveis no admin: ", error);
+                        imoveisList.innerHTML = '<p class="col-span-full text-center text-red-600">Erro ao carregar imóveis.</p>';
+                    });
+                };
+
+                // Funções para Blog (CRUD)
+                const blogModal = document.getElementById('blog-modal');
+                const addBlogBtn = document.getElementById('add-blog-btn');
+                const cancelBlogBtn = document.getElementById('cancel-blog-btn');
+                const blogForm = document.getElementById('blog-form');
+                const blogModalTitle = document.getElementById('blog-modal-title');
+
+                addBlogBtn.addEventListener('click', () => {
+                    blogModalTitle.textContent = 'Adicionar Artigo';
+                    blogForm.reset();
+                    currentEditingId = null;
+                    currentEditingType = 'blog';
+                    blogModal.classList.remove('hidden');
                 });
 
                 cancelBlogBtn.addEventListener('click', () => {
                     blogModal.classList.add('hidden');
                 });
 
-                // Submeter formulários
-                imovelForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await saveImovel();
-                });
-
                 blogForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    await saveBlogPost();
+                    const blogData = {
+                        titulo: document.getElementById('blog-titulo').value,
+                        autor: document.getElementById('blog-autor').value,
+                        conteudo: document.getElementById('blog-conteudo').value,
+                        data: serverTimestamp()
+                    };
+
+                    try {
+                        if (currentEditingId) {
+                            await updateDoc(doc(window.db, 'blogPosts', currentEditingId), blogData);
+                        } else {
+                            await addDoc(collection(window.db, 'blogPosts'), blogData);
+                        }
+                        blogModal.classList.add('hidden');
+                        alert('Artigo salvo com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao salvar artigo:', error);
+                        alert('Erro ao salvar artigo. Verifique o console para mais detalhes.');
+                    }
                 });
-            }
 
-            // Salvar imóvel
-            async function saveImovel() {
-                const data = {
-                    titulo: document.getElementById('imovel-titulo').value,
-                    descricao: document.getElementById('imovel-descricao').value,
-                    preco: document.getElementById('imovel-preco').value,
-                    localizacao: document.getElementById('imovel-localizacao').value,
-                    quartos: parseInt(document.getElementById('imovel-quartos').value) || 0,
-                    banheiros: parseInt(document.getElementById('imovel-banheiros').value) || 0,
-                    area: parseInt(document.getElementById('imovel-area').value) || 0,
-                    destaque: document.getElementById('imovel-destaque').value === 'true',
-                    imageURLs: document.getElementById('imovel-images').value.split('\n').filter(url => url.trim())
+                // Função para gerar o HTML para cada artigo no admin
+                const generateAdminBlogCard = (post, id) => {
+                    const date = post.data ? new Date(post.data.seconds * 1000).toLocaleDateString('pt-BR') : '';
+                    return `
+                        <div class="bg-white p-4 rounded-lg shadow flex items-center space-x-4">
+                            <div class="flex-grow">
+                                <h4 class="font-bold text-gray-900">${post.titulo}</h4>
+                                <p class="text-sm text-gray-600">Por ${post.autor} - ${date}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-id="${id}" data-type="blog" class="edit-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Editar</button>
+                                <button data-id="${id}" data-type="blog" class="delete-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Excluir</button>
+                            </div>
+                        </div>
+                    `;
                 };
 
-                try {
-                    if (currentEditingId) {
-                        await updateDoc(doc(window.db, 'imoveis', currentEditingId), data);
-                    } else {
-                        await addDoc(collection(window.db, 'imoveis'), data);
-                    }
-                    document.getElementById('imovel-modal').classList.add('hidden');
-                } catch (error) {
-                    alert('Erro ao salvar imóvel: ' + error.message);
-                }
-            }
+                // Carregar posts do blog no painel admin
+                const loadBlogPostsAdmin = () => {
+                    const blogList = document.getElementById('blog-list');
+                    blogList.innerHTML = `
+                        <div class="flex justify-center items-center py-8">
+                            <div class="loading"></div>
+                            <span class="ml-2 text-gray-600">Carregando artigos...</span>
+                        </div>
+                    `;
 
-            // Salvar blog post
-            async function saveBlogPost() {
-                const data = {
-                    titulo: document.getElementById('blog-titulo').value,
-                    autor: document.getElementById('blog-autor').value,
-                    conteudo: document.getElementById('blog-conteudo').value,
-                    data: serverTimestamp()
+                    onSnapshot(query(collection(window.db, "blogPosts"), orderBy("data", "desc")), (snapshot) => {
+                        blogList.innerHTML = '';
+                        if (snapshot.empty) {
+                            blogList.innerHTML = '<p class="col-span-full text-center text-gray-600">Nenhum artigo cadastrado.</p>';
+                            return;
+                        }
+                        snapshot.forEach((doc) => {
+                            blogList.innerHTML += generateAdminBlogCard(doc.data(), doc.id);
+                        });
+                        addEventListenersToCrudButtons();
+                    }, (error) => {
+                        console.error("Erro ao carregar artigos no admin: ", error);
+                        blogList.innerHTML = '<p class="col-span-full text-center text-red-600">Erro ao carregar artigos.</p>';
+                    });
                 };
 
-                try {
-                    if (currentEditingId) {
-                        await updateDoc(doc(window.db, 'blogPosts', currentEditingId), data);
-                    } else {
-                        await addDoc(collection(window.db, 'blogPosts'), data);
-                    }
-                    document.getElementById('blog-modal').classList.add('hidden');
-                } catch (error) {
-                    alert('Erro ao salvar artigo: ' + error.message);
+                // Adicionar event listeners para botões de Editar/Excluir
+                function addEventListenersToCrudButtons() {
+                    document.querySelectorAll('.edit-btn').forEach(button => {
+                        button.onclick = async (e) => {
+                            const id = e.target.dataset.id;
+                            const type = e.target.dataset.type;
+                            currentEditingId = id;
+                            currentEditingType = type;
+
+                            if (type === 'imovel') {
+                                const docRef = doc(window.db, 'imoveis', id);
+                                const docSnap = await window.firebaseModules.doc(window.db, 'imoveis', id);
+                                const data = docSnap.data();
+                                imovelModalTitle.textContent = 'Editar Imóvel';
+                                document.getElementById('imovel-titulo').value = data.titulo;
+                                document.getElementById('imovel-descricao').value = data.descricao;
+                                document.getElementById('imovel-preco').value = data.preco;
+                                document.getElementById('imovel-localizacao').value = data.localizacao;
+                                document.getElementById('imovel-quartos').value = data.quartos;
+                                document.getElementById('imovel-banheiros').value = data.banheiros;
+                                document.getElementById('imovel-area').value = data.area;
+                                document.getElementById('imovel-destaque').value = data.destaque.toString();
+                                document.getElementById('imovel-images').value = (data.imageURLs || []).join('\n');
+                                imovelModal.classList.remove('hidden');
+                            } else if (type === 'blog') {
+                                const docRef = doc(window.db, 'blogPosts', id);
+                                const docSnap = await window.firebaseModules.doc(window.db, 'blogPosts', id);
+                                const data = docSnap.data();
+                                blogModalTitle.textContent = 'Editar Artigo';
+                                document.getElementById('blog-titulo').value = data.titulo;
+                                document.getElementById('blog-autor').value = data.autor;
+                                document.getElementById('blog-conteudo').value = data.conteudo;
+                                blogModal.classList.remove('hidden');
+                            }
+                        };
+                    });
+
+                    document.querySelectorAll('.delete-btn').forEach(button => {
+                        button.onclick = async (e) => {
+                            const id = e.target.dataset.id;
+                            const type = e.target.dataset.type;
+                            if (confirm(`Tem certeza que deseja excluir este ${type === 'imovel' ? 'imóvel' : 'artigo'}?`)) {
+                                try {
+                                    await deleteDoc(doc(window.db, type === 'imovel' ? 'imoveis' : 'blogPosts', id));
+                                    alert(`${type === 'imovel' ? 'Imóvel' : 'Artigo'} excluído com sucesso!`);
+                                } catch (error) {
+                                    console.error(`Erro ao excluir ${type === 'imovel' ? 'imóvel' : 'artigo'}:`, error);
+                                    alert(`Erro ao excluir ${type === 'imovel' ? 'imóvel' : 'artigo'}. Verifique o console.`);
+                                }
+                            }
+                        };
+                    });
                 }
+
+                // Carregar imóveis e blog posts na inicialização do admin
+                loadProperties();
+                loadBlogPostsAdmin();
             }
-
-            // Funções globais para edição e exclusão
-            window.editImovel = (id, imovel) => {
-                currentEditingId = id;
-                currentEditingType = 'imovel';
-                document.getElementById('imovel-modal-title').textContent = 'Editar Imóvel';
-                document.getElementById('imovel-titulo').value = imovel.titulo;
-                document.getElementById('imovel-descricao').value = imovel.descricao;
-                document.getElementById('imovel-preco').value = imovel.preco;
-                document.getElementById('imovel-localizacao').value = imovel.localizacao;
-                document.getElementById('imovel-quartos').value = imovel.quartos || '';
-                document.getElementById('imovel-banheiros').value = imovel.banheiros || '';
-                document.getElementById('imovel-area').value = imovel.area || '';
-                document.getElementById('imovel-destaque').value = imovel.destaque ? 'true' : 'false';
-                document.getElementById('imovel-images').value = (imovel.imageURLs || []).join('\n');
-                document.getElementById('imovel-modal').classList.remove('hidden');
-            };
-
-            window.deleteImovel = async (id) => {
-                if (confirm('Tem certeza que deseja excluir este imóvel?')) {
-                    try {
-                        await deleteDoc(doc(window.db, 'imoveis', id));
-                    } catch (error) {
-                        alert('Erro ao excluir imóvel: ' + error.message);
-                    }
-                }
-            };
-
-            window.editBlogPost = (id, post) => {
-                currentEditingId = id;
-                currentEditingType = 'blog';
-                document.getElementById('blog-modal-title').textContent = 'Editar Artigo';
-                document.getElementById('blog-titulo').value = post.titulo;
-                document.getElementById('blog-autor').value = post.autor || 'Mestre Alisson';
-                document.getElementById('blog-conteudo').value = post.conteudo;
-                document.getElementById('blog-modal').classList.remove('hidden');
-            };
-
-            window.deleteBlogPost = async (id) => {
-                if (confirm('Tem certeza que deseja excluir este artigo?')) {
-                    try {
-                        await deleteDoc(doc(window.db, 'blogPosts', id));
-                    } catch (error) {
-                        alert('Erro ao excluir artigo: ' + error.message);
-                    }
-                }
-            };
         });
     </script>
 </body>
 </html>
+
 
